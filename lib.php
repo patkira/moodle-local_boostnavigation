@@ -163,11 +163,13 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
 
     // Check if admin wants us to insert the coursesections node in Boost's nav drawer.
     // Or if admin wants us to insert the activities and / or resources node in Boost's nav drawer.
-    // If one of these three settings is activated, we will need the modinfo and the coursehome node and don't want
+    // Or if admin wants us to insert custom course nodes in Boost's nav drawer.
+    // If one of these four settings is activated, we will need the modinfo and the coursehome node and don't want
     // to fetch these more than once.
     if (isset($config->insertcoursesectionscoursenode) && $config->insertcoursesectionscoursenode == true ||
             isset($config->insertactivitiescoursenode) && $config->insertactivitiescoursenode == true ||
-            isset($config->insertresourcescoursenode) && $config->insertresourcescoursenode == true) {
+            isset($config->insertresourcescoursenode) && $config->insertresourcescoursenode == true ||
+            isset($config->insertcustomcoursenodes) && $config->insertcustomcoursenodes == true) {
         // Fetch modinfo.
         $modinfo = get_fast_modinfo($COURSE->id);
         // Fetch course home node.
@@ -413,6 +415,21 @@ function local_boostnavigation_extend_navigation(global_navigation $navigation) 
                     }
                 }
             }
+        }
+    }
+
+    // Check if admin wants us to insert custom nodes in Boost's nav drawer.
+    if (isset($config->insertcustomnodes) && !empty($config->insertcustomnodes)) {
+        // Build the custom nodes and add them to the given navigation_node.
+        local_boostnavigation_build_custom_nodes($config->insertcustomnodes, $navigation, null, true);
+    }
+
+    // Check if admin wants us to insert custom course nodes in Boost's nav drawer.
+    if (isset($config->insertcustomcoursenodes) && !empty($config->insertcustomcoursenodes)) {
+        // Only proceed if we are inside a course.
+        if ($COURSE->id > 1) {
+            // Build the custom nodes and add them to the given navigation_node.
+            local_boostnavigation_build_custom_nodes($config->insertcustomcoursenodes, $coursehomenode, null, false);
         }
     }
 

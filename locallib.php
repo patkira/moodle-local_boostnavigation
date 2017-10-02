@@ -87,3 +87,114 @@ function local_boostnavigation_get_all_childrenkeys(navigation_node $navigationn
         return $allchildren;
     }
 }
+
+
+
+/**
+ * This function takes one the plugin's custom nodes setting, builds the custom nodes and adds them to the given navigation_node.
+ *
+ * @param string $customnodes
+ * @param navigation_node $node
+ * @param string $beforekey
+ * @param bool $showinflatnavigation
+ * @return void
+ */
+function local_boostnavigation_build_custom_nodes(string $customnodes,
+                                                  navigation_node $node,
+                                                  string $beforekey=null,
+                                                  bool $showinflatnavigation=true)
+{
+    global $OUTPUT;
+
+    // Initialize counter which is later used for the node IDs.
+    $nodecount = 0;
+
+    // Make a new array on delimiter "new line".
+    $lines = explode("\n", $customnodes);
+    // Parse node settings.
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if (strlen($line) == 0) {
+            continue;
+        }
+        $nodeicon = null;
+        $nodeurl = null;
+        $nodetitle = null;
+        $nodevisible = false;
+        // Make a new array on delimiter "|".
+        $settings = explode('|', $line);
+        // Check for the mandatory conditions first.
+        // If array contains too less or too many settings, do not proceed and therefore do not create the node.
+        // Furthermore check it at least the first three mandatory params are not an empty string.
+        if (count($settings) >= 3 && count($settings) <= 4 &&
+            $settings[0] !== '' && $settings[1] !== '' && $settings[2] !== '') {
+            foreach ($settings as $i => $setting) {
+                $setting = trim($setting);
+                if (!empty($setting)) {
+                    switch ($i) {
+                        // Check for the mandatory first param: icon.
+                        case 0:
+                            $moodlepixpattern = '~^[a-z]/[\w\d-_]+$~';
+                            $faiconpattern = '~^fa-[\w\d-]+$~';
+                            // Check if it's a Moodle pix icon.
+                            if (preg_match($moodlepixpattern, $setting) > 0) {
+                                $nodeicon = $OUTPUT->pix_icon($setting, '');
+                                $nodevisible = true;
+                            }
+                            else if (preg_match($faiconpattern, $setting) > 0) { // Check if it's a Font Awesome icon.
+                                $nodeicon = '<i class="fa ' . $setting . '"></i>';
+                                $nodevisible = true;
+                            }
+                            break;
+                        // Check for the mandatory second param: URL.
+                        case 1:
+                            // Get the URL.
+                            try {
+                                $nodeurl = new moodle_url($setting);
+                                $nodevisible = true;
+                            } catch (moodle_exception $exception) {
+                                // We're not actually worried about this, we don't want to mess up the display
+                                // just for a wrongly entered URL. We just hide the icon in this case.
+                                $nodeurl = null;
+                                $nodevisible = false;
+                            }
+                            break;
+                        // Check for the mandatory third param: text for title and alt attribute.
+                        case 2:
+                            $nodetitle = $setting;
+                            $nodevisible = true;
+                            break;
+                        // Check for the optional fourth param: language support.
+                        case 3:
+                            // Only proceed if something is entered here. This parameter is optional.
+                            // If no language is given the icon will be displayed in the navbar by default.
+                            $nodelanguages = array_map('trim', explode(',', $setting));
+                            $nodevisible &= in_array(current_language(), $nodelanguages);
+                            break;
+                    }
+                }
+            }
+        }
+
+        // Add a custom node to the given navigation_node.
+        // This is if all mandatory params are set and the node matches the optional given language setting.
+        if ($nodevisible) {
+            // Create custom node.
+            $customnode = navigation_node::create($nodetitle,
+                    $nodeurl,
+                    global_navigation::TYPE_CUSTOM,
+                    null,
+                    'localboostnavigationcustom'.++$nodecount,
+                    new pix_icon('icon', '', 'mod_page')); // Boost ignores a navigation node's icon currently,
+                                                           // but we set it for future-proofness.
+                                                           // TODO
+            // Show the custom node in Boost's nav drawer if requested
+            if ($showinflatnavigation) {
+                $customnode->showinflatnavigation = true;
+            }
+
+            // Add the custom node to the given navigation_node.
+            $node->add_node($customnode, $beforekey);
+        }
+    }
+}

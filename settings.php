@@ -114,6 +114,18 @@ if ($hassiteconfig) {
                         get_string('setting_removemycoursesnodeperformancehint', 'local_boostnavigation', null, true),
                 0));
 
+        // Add insert nodes heading.
+        $page->add(new admin_setting_heading('local_boostnavigation/insertnodesheading',
+                get_string('setting_insertnodesheading', 'local_boostnavigation', null, true),
+                ''));
+
+        // Create insert custom nodes widget.
+        $page->add(new admin_setting_configtextarea('local_boostnavigation/insertcustomnodes',
+                get_string('setting_insertcustomnodes', 'local_boostnavigation', null, true),
+                get_string('setting_insertcustomnodes_desc', 'local_boostnavigation', null, true),
+                '',
+                PARAM_RAW));
+
         // Add collapse nodes heading.
         $page->add(new admin_setting_heading('local_boostnavigation/collapsenodesheading',
                 get_string('setting_collapsenodesheading', 'local_boostnavigation', null, true),
@@ -152,6 +164,13 @@ if ($hassiteconfig) {
                 get_string('setting_insertresourcescoursenode', 'local_boostnavigation', null, true),
                 get_string('setting_insertresourcescoursenode_desc', 'local_boostnavigation', null, true),
                 0));
+
+        // Create insert custom course nodes widget.
+        $page->add(new admin_setting_configtextarea('local_boostnavigation/insertcustomcoursenodes',
+                get_string('setting_insertcustomcoursenodes', 'local_boostnavigation', null, true),
+                get_string('setting_insertcustomcoursenodes_desc', 'local_boostnavigation', null, true),
+                '',
+                PARAM_RAW));
 
         // Add collapse course nodes heading.
         $page->add(new admin_setting_heading('local_boostnavigation/collapsecoursenodesheading',
